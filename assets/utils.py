@@ -46,7 +46,7 @@ class ArrayToTensor(object):
 class Scale(object):
     """Scales images and modifies corresponding intrinsics"""
 
-    def __call__(self, images, depth, intrinsics, height = 240, width =320):
+    def __call__(self, images, depth, intrinsics, height = 256, width =320):
         assert intrinsics is not None
         output_intrinsics = np.copy(intrinsics)
 
