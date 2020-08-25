@@ -168,6 +168,7 @@ def validate_with_gt(args, val_loader, supernet, trinet, depthnet, val_set=None)
 
     evaluation_dir = ""
 
+    all_epls = []
     with torch.no_grad():
 
         for i, (tgt_img, ref_imgs, poses, intrinsics, tgt_depth, ref_depths, tgt_img_path) in enumerate(val_loader):
@@ -185,6 +186,7 @@ def validate_with_gt(args, val_loader, supernet, trinet, depthnet, val_set=None)
             ref_imgs_var = ref_imgs
             img_var = make_symmetric(tgt_img_var, ref_imgs_var)
 
+            start_time = time.time()
             ##Step 1: Detect and Describe Points
             data_sp = {'img': img_var, 'process_tsp': 'ts'}  # t is detector, s is descriptor
             pred_sp = supernet(data_sp)
@@ -245,6 +247,9 @@ def validate_with_gt(args, val_loader, supernet, trinet, depthnet, val_set=None)
             pred_dd = depthnet(data_dd)
             output = pred_dd['dense_depth']
 
+            elps = time.time() - start_time
+            all_epls.append(elps)
+
             # Calculate metrics
             tgt_depth_tiled = depth
 
@@ -264,6 +269,7 @@ def validate_with_gt(args, val_loader, supernet, trinet, depthnet, val_set=None)
             if i % int(0.5 * args.print_freq) == 0:
                 print(' TEST: Depth Error {:.4f} ({:.4f})'.format(errors_depth.avg[1], errors_depth.avg[0]))
 
+    print("inference time:", np.mean(all_epls))
     return errors_depth.avg, error_names
 
 
