@@ -351,9 +351,11 @@ def sample_descriptors_epi(keypoints, descriptors, s, normalize =  True, align_c
 
     keypoints = keypoints*2 - 1  
     if len(keypoints.shape) == 4:
-        descriptors = torch.nn.functional.grid_sample(descriptors, keypoints.view(b, keypoints.shape[1], keypoints.shape[2], 2), mode='bilinear',align_corners =align_corner) ##pythorch 1.3+
+        descriptors = torch.nn.functional.grid_sample(descriptors, keypoints.view(b, keypoints.shape[1], keypoints.shape[2], 2), mode='bilinear')
+                                                      #,align_corners =align_corner) ##pythorch 1.3+
     elif len(keypoints.shape) == 3:
-        descriptors = torch.nn.functional.grid_sample(descriptors, keypoints.view(b, 1, -1, 2), mode='bilinear',align_corners =align_corner) ##pythorch 1.3+
+        descriptors = torch.nn.functional.grid_sample(descriptors, keypoints.view(b, 1, -1, 2), mode='bilinear')
+                                                      #,align_corners =align_corner) ##pythorch 1.3+
 
     if normalize:
         descriptors = torch.nn.functional.normalize(descriptors, p=2, dim=1)

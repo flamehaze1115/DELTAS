@@ -8,6 +8,7 @@ from models import superpoint, triangulation, densedepth
 from assets.utils import *
 import os
 import re
+import time
 
 parser = argparse.ArgumentParser(description='Structure from Motion Learner training on KITTI and CityScapes Dataset',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -20,10 +21,10 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N', help='n
 parser.add_argument('-b', '--batch-size', default=16, type=int, metavar='N', help='mini-batch size')
 parser.add_argument('--print-freq', default=200, type=int, metavar='N', help='print frequency')
 parser.add_argument('--seed', default=1, type=int, help='seed for random functions, and network initialization')
-parser.add_argument('--ttype2', default='./assets/sample_data/scannetv2_sample.txt', type=str,
+parser.add_argument('--ttype2', default='./assets/sample_data/sample_list.txt', type=str,
                     help='Text file indicates input data')
 parser.add_argument('--mindepth', type=float, default=0.5, help='minimum depth')
-parser.add_argument('--maxdepth', type=float, default=5.0, help='maximum depth')
+parser.add_argument('--maxdepth', type=float, default=10.0, help='maximum depth')
 parser.add_argument('--width', type=int, default=320, help='image width')
 parser.add_argument('--height', type=int, default=256, help='image height')
 parser.add_argument('--seq_length', default=3, type=int, help='length of sequence')
@@ -166,15 +167,18 @@ def validate_with_gt(args, val_loader, supernet, trinet, depthnet, val_set=None)
     trinet.eval()
     depthnet.eval()
 
-    evaluation_dir = ""
+    evaluation_dir = "/mnt/scannet/DELTAS_results"
 
     all_epls = []
     with torch.no_grad():
 
         for i, (tgt_img, ref_imgs, poses, intrinsics, tgt_depth, ref_depths, tgt_img_path) in enumerate(val_loader):
-
-            scene_name = os.path.split(tgt_img_path)[-3]
-            tgt_img_name = os.path.split(tgt_img_path)[-1]
+            if i % 10!=0:
+                continue
+            print(tgt_img_path)
+            tgt_img_path = str(tgt_img_path[0])
+            scene_name = tgt_img_path.split('/')[-3]
+            tgt_img_name = tgt_img_path.split('/')[-1]
             tgt_index = [int(s) for s in re.findall(r'\d+', tgt_img_name)][0]
             pred_depth_name = "frame-%06d.pred_depth.npy" % tgt_index
 
@@ -247,14 +251,16 @@ def validate_with_gt(args, val_loader, supernet, trinet, depthnet, val_set=None)
             pred_dd = depthnet(data_dd)
             output = pred_dd['dense_depth']
 
+
+
             elps = time.time() - start_time
             all_epls.append(elps)
 
             # Calculate metrics
             tgt_depth_tiled = depth
-
-            np.save(os.path.join(pred_depth_dir, pred_depth_name), np.float16(output))
-            colored_pred_depth = colorize_depth_np(output, max_depth=args.maxdepth)
+            pred_depth = output.squeeze().cpu().numpy()
+            np.save(os.path.join(pred_depth_dir, pred_depth_name), np.float16(pred_depth))
+            colored_pred_depth = colorize_depth_np(pred_depth, max_depth=5.0)
             cv2.imwrite(os.path.join(pred_depth_dir, pred_depth_name.replace("npy", "jpg")),
                         cv2.cvtColor(np.uint8(colored_pred_depth), cv2.COLOR_RGB2BGR))
 

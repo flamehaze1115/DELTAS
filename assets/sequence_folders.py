@@ -26,7 +26,7 @@ class SequenceFolder(torch.utils.data.Dataset):
         scene_list_path = ttype
         self.scene_list_path = scene_list_path[:-4]
         fold_root = 'scans_test'
-        scenes = [self.root / fold_root / folder[:-1] for folder in open(scene_list_path)]
+        scenes = [self.root  / folder[:-1] for folder in open(scene_list_path)]
         self.ttype = ttype
         self.scenes = sorted(scenes)
 
@@ -66,7 +66,7 @@ class SequenceFolder(torch.utils.data.Dataset):
 
             for i in range(len(frames)):
 
-                img = os.path.join(scene, "color", "%d.jpg" % i)
+                img = os.path.join(scene, "rgb", "%d.jpg" % i)
                 depth = os.path.join(scene, "depth", "%d.png" % i)
 
                 pose_tgt = poses[i]
@@ -136,7 +136,7 @@ class SequenceFolder(torch.utils.data.Dataset):
                     pose = pose_rel[:3, :].reshape((1, 3, 4)).astype(np.float32)
                     sample['ref_poses'].append(pose)
 
-                    sample['ref_imgs'].append(os.path.join(scene, "color", "%d.jpg" % j))
+                    sample['ref_imgs'].append(os.path.join(scene, "rgb", "%d.jpg" % j))
                     sample['ref_depths'].append(os.path.join(scene, "depth", "%d.png" % j))
 
                     nan_pose = np.sum(np.isnan(pose)) + np.sum(np.isinf(pose))
