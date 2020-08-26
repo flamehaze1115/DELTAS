@@ -167,7 +167,7 @@ def validate_with_gt(args, val_loader, supernet, trinet, depthnet, val_set=None)
     trinet.eval()
     depthnet.eval()
 
-    evaluation_dir = "/mnt/scannet/DELTAS_results"
+    evaluation_dir = "/mnt/scannet/DELTAS_results/eval_7scenes"
 
     all_epls = []
     with torch.no_grad():
